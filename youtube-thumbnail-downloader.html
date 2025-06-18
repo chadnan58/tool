@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Thumbnail Downloader - Multi-Tools</title>
+    <meta name="description" content="Free YouTube thumbnail downloader. Download high-quality thumbnails from any YouTube video.">
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="/css/style.css">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .thumbnail-container {
+            margin-top: 30px;
+            display: none;
+        }
+        .thumbnail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .thumbnail-item {
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            text-align: center;
+            background: white;
+        }
+        .thumbnail-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+        }
+        .thumbnail-info {
+            padding: 15px;
+            background-color: #f8f9fa;
+        }
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #dc3545;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header will be loaded dynamically -->
+    <div id="header-placeholder"></div>
+
+    <!-- Main Content -->
+    <main class="tool-page">
+        <div class="tool-container">
+            <h1 class="text-center mb-4">
+                <i class="fab fa-youtube text-danger"></i>
+                YouTube Thumbnail Downloader
+            </h1>
+            
+            <!-- Tool Description -->
+            <div class="alert alert-info mb-4">
+                <i class="fas fa-info-circle"></i>
+                Download high-quality thumbnails from any YouTube video. Simply paste the video URL and get all available thumbnail sizes.
+            </div>
+
+            <!-- Input Section -->
+            <div class="mb-4">
+                <label for="youtubeUrl" class="form-label">YouTube Video URL or ID:</label>
+                <input type="text" id="youtubeUrl" class="form-control" placeholder="https://www.youtube.com/watch?v=..." />
+            </div>
+
+            <div class="text-center mb-4">
+                <button onclick="fetchThumbnails()" class="btn btn-danger btn-lg">
+                    <i class="fas fa-download"></i> Get Thumbnails
+                </button>
+            </div>
+
+            <div id="error" class="alert alert-danger" style="display: none;"></div>
+            
+            <div class="loading text-center" id="loading" style="display: none;">
+                <div class="spinner mb-2"></div>
+                <p>Loading thumbnails...</p>
+            </div>
+            
+            <div class="thumbnail-container" id="thumbnailContainer">
+                <h2 class="text-center mb-4">Available Thumbnails</h2>
+                <div class="thumbnail-grid" id="thumbnailGrid"></div>
+            </div>
+
+            <!-- Ad Space -->
+            <div class="ad-space text-center mt-4">
+                <small class="text-muted d-block mb-2">Advertisement</small>
+                <!-- Add your ad code here -->
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer will be loaded dynamically -->
+    <div id="footer-placeholder"></div>
+
+    <!-- Bootstrap Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JavaScript -->
+    <script src="/js/components-loader.js"></script>
+    <script>
+        function fetchThumbnails() {
+            const youtubeUrl = document.getElementById('youtubeUrl').value.trim();
+            const errorElement = document.getElementById('error');
+            const loadingElement = document.getElementById('loading');
+            const thumbnailContainer = document.getElementById('thumbnailContainer');
+            const thumbnailGrid = document.getElementById('thumbnailGrid');
+            
+            // Clear previous results
+            errorElement.style.display = 'none';
+            errorElement.textContent = '';
+            thumbnailContainer.style.display = 'none';
+            thumbnailGrid.innerHTML = '';
+            
+            // Validate input
+            if (!youtubeUrl) {
+                errorElement.textContent = 'Please enter a YouTube URL or video ID';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            // Extract video ID
+            let videoId = '';
+            const regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|&v=)([^#&?]*).*/;
+            const match = youtubeUrl.match(regExp);
+            
+            if (match && match[2].length === 11) {
+                videoId = match[2];
+            } else if (youtubeUrl.length === 11) {
+                videoId = youtubeUrl;
+            } else {
+                errorElement.textContent = 'Invalid YouTube URL or video ID';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            // Show loading indicator
+            loadingElement.style.display = 'block';
+            
+            // Generate thumbnail URLs
+            const thumbnailQualities = [
+                { name: 'Max Resolution', url: `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg` },
+                { name: 'High Quality', url: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg` },
+                { name: 'Medium Quality', url: `https://img.youtube.com/vi/${videoId}/mqdefault.jpg` },
+                { name: 'Standard Quality', url: `https://img.youtube.com/vi/${videoId}/sddefault.jpg` },
+                { name: 'Default', url: `https://img.youtube.com/vi/${videoId}/default.jpg` },
+                { name: 'Start (0)', url: `https://img.youtube.com/vi/${videoId}/0.jpg` },
+                { name: 'Middle (1)', url: `https://img.youtube.com/vi/${videoId}/1.jpg` },
+                { name: 'End (2)', url: `https://img.youtube.com/vi/${videoId}/2.jpg` },
+                { name: 'Start (3)', url: `https://img.youtube.com/vi/${videoId}/3.jpg` }
+            ];
+            
+            // Check which thumbnails actually exist
+            const promises = thumbnailQualities.map(quality => {
+                return new Promise((resolve) => {
+                    const img = new Image();
+                    img.onload = () => resolve({ ...quality, exists: true });
+                    img.onerror = () => resolve({ ...quality, exists: false });
+                    img.src = quality.url;
+                });
+            });
+            
+            Promise.all(promises).then(results => {
+                const availableThumbnails = results.filter(thumb => thumb.exists);
+                
+                if (availableThumbnails.length === 0) {
+                    errorElement.textContent = 'No thumbnails found for this video';
+                    errorElement.style.display = 'block';
+                    return;
+                }
+                
+                // Display available thumbnails
+                availableThumbnails.forEach(thumb => {
+                    const thumbnailItem = document.createElement('div');
+                    thumbnailItem.className = 'thumbnail-item';
+                    
+                    const img = document.createElement('img');
+                    img.src = thumb.url;
+                    img.alt = thumb.name;
+                    
+                    const info = document.createElement('div');
+                    info.className = 'thumbnail-info';
+                    info.innerHTML = `
+                        <p class="mb-2"><strong>${thumb.name}</strong></p>
+                        <button class="btn btn-primary btn-sm" onclick="downloadImage('${thumb.url}', 'yt_thumb_${videoId}_${thumb.name.replace(/\s+/g, '_').toLowerCase()}.jpg')">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    `;
+                    
+                    thumbnailItem.appendChild(img);
+                    thumbnailItem.appendChild(info);
+                    thumbnailGrid.appendChild(thumbnailItem);
+                });
+                
+                thumbnailContainer.style.display = 'block';
+            }).catch(error => {
+                errorElement.textContent = 'Error fetching thumbnails: ' + error.message;
+                errorElement.style.display = 'block';
+            }).finally(() => {
+                loadingElement.style.display = 'none';
+            });
+        }
+        
+        function downloadImage(url, filename) {
+            fetch(url)
+                .then(response => response.blob())
+                .then(blob => {
+                    const blobUrl = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = blobUrl;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(blobUrl);
+                    document.body.removeChild(a);
+                })
+                .catch(error => {
+                    console.error('Download error:', error);
+                    alert('Failed to download the image');
+                });
+        }
+    </script>
+</body>
+</html> 
